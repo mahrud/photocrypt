@@ -8,7 +8,7 @@ import shlex
 import sys
 
 from dropbox import client, rest
-from encrypt import convergent_encryption as enc_file
+from encrypt import encrypt as enc_file
 
 # XXX Fill in your consumer key and secret below
 # You can find these at http://www.dropbox.com/developers/apps

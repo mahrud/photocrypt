@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Encrypted Image Sharing</title>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha256.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/core-min.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-utf16-min.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
+        <script type="text/javascript">
+            var url = document.URL;
+            var path = url.split('#')[0].split('/').slice(3).join('/');
+            var ext = path.split('.').slice(-2,-1)
+
+            var key = CryptoJS.enc.Hex.parse(url.split('#')[1]);
+            var iv  = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // FIXME fixed IV no no no no no!
+
+            var dropbox_prefix = "https://dl.dropboxusercontent.com/";
+            var source = dropbox_prefix + path;
+
+            jQuery.get(source, function(data) {
+                var encrypted = {};
+                encrypted.ciphertext = CryptoJS.enc.Base64.parse(data.split('\n').join(''))
+                var decrypted = CryptoJS.AES.decrypt(encrypted, key, {iv: iv});
+
+                if (ext == 'txt')   {
+                    document.write(decrypted.toString(CryptoJS.enc.Utf8));
+                } else if (ext == 'jpg') {
+                    var image = document.createElement('img');
+                    image.src = 'data:image/jpeg;base64, ' + decrypted.toString(CryptoJS.enc.Base64)
+                    document.body.appendChild(image);
+                };
+            });
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

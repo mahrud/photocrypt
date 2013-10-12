@@ -1,62 +1,57 @@
-#!/usr/bin/python
-
+import binascii
+import StringIO
 import os, random, struct
 from Crypto.Hash import SHA256 as SHA
 from Crypto.Cipher import AES
+ 
+class PKCS7Encoder(object):
+    def __init__(self, k=16):
+       self.k = k
+ 
+    ## @param text The padded text for which the padding is to be removed.
+    # @exception ValueError Raised when the input padding is missing or corrupt.
+    def decode(self, text):
+        '''
+        Remove the PKCS#7 padding from a text string
+        '''
+        nl = len(text)
+        val = int(binascii.hexlify(text[-1]), 16)
+        if val > self.k:
+            raise ValueError('Input is not padded or padding is corrupt')
+ 
+        l = nl - val
+        return text[:l]
+ 
+    ## @param text The text to encode.
+    def encode(self, text):
+        '''
+        Pad an input string according to PKCS#7
+        '''
+        l = len(text)
+        output = StringIO.StringIO()
+        val = self.k - (l % self.k)
+        for _ in xrange(val):
+            output.write('%02x' % val)
+        return text + binascii.unhexlify(output.getvalue())
 
-def convergent_encryption(in_filename, out_filename=None, sha_chunksize=64*1024):
+def encrypt(filename):
     h = SHA.new()
-    sha_chunksize = 8192 
-    with open(in_filename, 'rb') as f:
-        while True:
-            chunk = f.read(sha_chunksize)
-            if len(chunk) == 0:
-                break
-            h.update(chunk)
-    return encrypt_file(h.digest(), in_filename, out_filename, sha_chunksize)
+    file = open(filename, 'rb')
+    plain = ''.join(file.readlines())
+    file.close()
+    h.update(plain)
 
-def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
-    """ Encrypts a file using AES (CBC mode) with the
-        given key.
+    key = h.digest()
 
-        key:
-            The encryption key - a string that must be
-            either 16, 24 or 32 bytes long. Longer keys
-            are more secure.
+    enc = AES.new(key, AES.MODE_CBC, 16 * '\x00')
 
-        in_filename:
-            Name of the input file
+    encoder = PKCS7Encoder()
+    padded = encoder.encode(plain)
 
-        out_filename:
-            If None, '<in_filename>.enc' will be used.
+    cipher = enc.encrypt(padded)
 
-        chunksize:
-            Sets the size of the chunk which the function
-            uses to read and encrypt the file. Larger chunk
-            sizes can be faster for some files and machines.
-            chunksize must be divisible by 16.
-    """
-    if not out_filename:
-        out_filename = in_filename + '.enc'
+    file = open(filename + '.enc', 'wb')
+    file.write(cipher.encode('base64'))
+    file.close()
 
-    iv = ''.join(chr(0) for i in range(16))
-    encryptor = AES.new(key, AES.MODE_CBC, iv)
-    filesize = os.path.getsize(in_filename)
-
-    with open(in_filename, 'rb') as infile:
-        with open(out_filename, 'wb') as outfile:
-            outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
-
-            while True:
-                chunk = infile.read(chunksize)
-                if len(chunk) == 0:
-                    break
-                elif len(chunk) % 16 != 0:
-                    chunk += ' ' * (16 - len(chunk) % 16)
-
-                outfile.write(encryptor.encrypt(chunk))
-
-    outfile.close()
-
-    return open(out_filename, 'rb')
+    return open(filename + '.enc', 'rb')
