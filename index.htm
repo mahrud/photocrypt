@@ -35,9 +35,9 @@
                 var data = CryptoJS.AES.decrypt(data_enc, skey, {iv: iv});
 
                 if (ext == 'txt')   {
-                    document.write('<textarea disabled rows=10 cols=80 >' + data.toString(CryptoJS.enc.Utf8) + '</textarea><br />');
+                    document.write('<textarea disabled rows=10 cols=80 >' + data.toString(CryptoJS.enc.Utf8) + '</textarea>');
                 } else if (ext == 'jpg') {
-                    document.write('<img width=660 src="data:image/jpeg;base64, ' + data.toString(CryptoJS.enc.Base64) + '" /><br />')
+                    document.write('<img width=660 src="data:image/jpeg;base64, ' + data.toString(CryptoJS.enc.Base64) + '" />')
                 };
                 if (key[0] == 'hkey')
                     document.write('<h2>Share <a href=' + url.split('#')[0] + '#skey:' + skey + ' >this link</a> with your friends to let them see this!</h2>');
