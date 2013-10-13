@@ -9,27 +9,40 @@
         <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
         <script type="text/javascript">
             var url = document.URL;
+            
             var path = url.split('#')[0].split('/').slice(3).join('/');
-            var ext = path.split('.').slice(-2,-1)
-
-            var key = CryptoJS.enc.Hex.parse(url.split('#')[1]);
-            var iv  = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // FIXME fixed IV no no no no no!
+            var ext = path.split('.').slice(-2,-1);
+            var key = url.split('#')[1].split(':');
 
             var dropbox_prefix = "https://dl.dropboxusercontent.com/";
             var source = dropbox_prefix + path;
 
             jQuery.get(source, function(data) {
-                var encrypted = {};
-                encrypted.ciphertext = CryptoJS.enc.Base64.parse(data.split('\n').join(''))
-                var decrypted = CryptoJS.AES.decrypt(encrypted, key, {iv: iv});
+                var iv  = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // FIXME fixed IV no no no no no!
+                var ciphertext = data.split('\n').join('').split(':');
+
+                if (key[0] == 'hkey') {
+                    var hkey = CryptoJS.SHA256(key[1]);
+
+                    var skey_enc = {};
+                    skey_enc.ciphertext = CryptoJS.enc.Base64.parse(ciphertext[0]);
+                    var skey = CryptoJS.AES.decrypt(skey_enc, hkey, {iv: iv});
+                } else if (key[0] == 'skey')
+                    var skey = CryptoJS.enc.Hex.parse(key[1]);
+
+                var data_enc = {};
+                data_enc.ciphertext = CryptoJS.enc.Base64.parse(ciphertext[1]);
+                var data = CryptoJS.AES.decrypt(data_enc, skey, {iv: iv});
 
                 if (ext == 'txt')   {
-                    document.write(decrypted.toString(CryptoJS.enc.Utf8));
-                } else if (ext == 'jpg') {
+                    document.write('<textarea disabled rows=10 cols=80 >' + data.toString(CryptoJS.enc.Utf8) + '</textarea>');
+                } else if (ext == 'jpg')    {
                     var image = document.createElement('img');
-                    image.src = 'data:image/jpeg;base64, ' + decrypted.toString(CryptoJS.enc.Base64)
+                    image.src = 'data:image/jpeg;base64, ' + data.toString(CryptoJS.enc.Base64)
                     document.body.appendChild(image);
                 };
+                if (key[0] == 'hkey')
+                    document.write('<br />To share this with friends, give them <a href=' + url.split('#')[0] + 'skey:' + skey + ' >this link</a>');
             });
         </script>
     </head>

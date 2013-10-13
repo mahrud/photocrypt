@@ -34,24 +34,37 @@ class PKCS7Encoder(object):
             output.write('%02x' % val)
         return text + binascii.unhexlify(output.getvalue())
 
-def encrypt(filename):
-    h = SHA.new()
-    file = open(filename, 'rb')
-    plain = ''.join(file.readlines())
-    file.close()
-    h.update(plain)
-
-    key = h.digest()
-
-    enc = AES.new(key, AES.MODE_CBC, 16 * '\x00')
-
+def enc(plain, key):
     encoder = PKCS7Encoder()
     padded = encoder.encode(plain)
 
-    cipher = enc.encrypt(padded)
+    encr = AES.new(key, AES.MODE_CBC, 16 * '\x00') # static IV, NONONONONONONONONONONO, batman!!!! :p
+    cipher = encr.encrypt(padded)
+
+    return cipher.encode('base64')
+
+def conenc(filename, masterkey): #convergent encryption
+    file = open(filename, 'rb')
+    plain = ''.join(file.readlines())
+    file.close()
+
+    h = SHA.new()
+    h.update(plain)
+    key = h.digest()
+
+    cipher = enc(plain, key)
+
+    h = SHA.new()
+    h.update(masterkey)
+    hkey = h.digest()
+
+    header = enc(key, hkey)
+    print hkey.encode('hex')
 
     file = open(filename + '.enc', 'wb')
-    file.write(cipher.encode('base64'))
+    file.write(header.strip())
+    file.write(':\n')
+    file.write(cipher)
     file.close()
 
     return open(filename + '.enc', 'rb')
