@@ -9,8 +9,6 @@
         <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
         <script type="text/javascript">
             var url = document.URL;
-            url = "http://tomestone-hfans.rhcloud.com/s/z87cxueqrh1adht/secret.txt.enc#skey:659a28658a4641ab6f7cad5a78ecf1147262eff960537663a5ab15bbcc385572";
-            url = "http://tomestone-hfans.rhcloud.com/s/z87cxueqrh1adht/secret.txt.enc#hkey:test";
             
             var path = url.split('#')[0].split('/').slice(3).join('/');
             var ext = path.split('.').slice(-2,-1);
@@ -18,7 +16,6 @@
 
             var dropbox_prefix = "https://dl.dropboxusercontent.com/";
             var source = dropbox_prefix + path;
-            source = "http://localhost/~mahrud/secret.txt.enc";
 
             jQuery.get(source, function(data) {
                 var iv  = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // FIXME fixed IV no no no no no!
@@ -38,14 +35,13 @@
                 var data = CryptoJS.AES.decrypt(data_enc, skey, {iv: iv});
 
                 if (ext == 'txt')   {
-                    document.write('<textarea disabled rows=10 cols=80 >' + data.toString(CryptoJS.enc.Utf8) + '</textarea>');
-                } else if (ext == 'jpg')    {
-                    var image = document.createElement('img');
-                    image.src = 'data:image/jpeg;base64, ' + data.toString(CryptoJS.enc.Base64)
-                    document.body.appendChild(image);
+                    document.write('<textarea disabled rows=10 cols=80 >' + data.toString(CryptoJS.enc.Utf8) + '</textarea><br />');
+                } else if (ext == 'jpg') {
+                    document.write('<img width=660 src="data:image/jpeg;base64, ' + data.toString(CryptoJS.enc.Base64) + '" /><br />')
                 };
                 if (key[0] == 'hkey')
-                    document.write('<br />To share this with friends, give them <a href=' + url.split('#')[0] + '#skey:' + skey + ' >this link</a>');
+                    document.write('<h2>Share <a href=' + url.split('#')[0] + '#skey:' + skey + ' >this link</a> with your friends to let them see this!</h2>');
+                    document.write('With Photocrypt, nobody without that link or your masterkey can see your photos and documents, not even The Big Brother!');
             });
         </script>
     </head>
