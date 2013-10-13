@@ -8,7 +8,7 @@ import shlex
 import sys
 
 from dropbox import client, rest
-from encrypt import encrypt as enc_file
+from encrypt import conenc as enc_file
 
 # XXX Fill in your consumer key and secret below
 # You can find these at http://www.dropbox.com/developers/apps
@@ -168,14 +168,14 @@ class DropboxTerm(cmd.Cmd):
         to_file.write(f.read())
 
     @command()
-    def do_put(self, from_path, to_path):
+    def do_put(self, from_path, to_path, masterkey):
         """
         Copy local file to Dropbox
 
         Examples:
-        Dropbox> put ~/test.txt dropbox-copy-test.txt
+        Dropbox> put ~/test.txt dropbox-copy-test.txt yellowsubmarines
         """
-        from_file = enc_file(os.path.expanduser(from_path))
+        from_file = enc_file(os.path.expanduser(from_path), masterkey)
 
         self.api_client.put_file(self.current_path + "/" + to_path, from_file)
 

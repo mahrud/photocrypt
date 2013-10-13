@@ -59,7 +59,6 @@ def conenc(filename, masterkey): #convergent encryption
     hkey = h.digest()
 
     header = enc(key, hkey)
-    print hkey.encode('hex')
 
     file = open(filename + '.enc', 'wb')
     file.write(header.strip())

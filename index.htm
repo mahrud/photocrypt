@@ -9,6 +9,8 @@
         <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
         <script type="text/javascript">
             var url = document.URL;
+            url = "http://tomestone-hfans.rhcloud.com/s/z87cxueqrh1adht/secret.txt.enc#skey:659a28658a4641ab6f7cad5a78ecf1147262eff960537663a5ab15bbcc385572";
+            url = "http://tomestone-hfans.rhcloud.com/s/z87cxueqrh1adht/secret.txt.enc#hkey:test";
             
             var path = url.split('#')[0].split('/').slice(3).join('/');
             var ext = path.split('.').slice(-2,-1);
@@ -16,6 +18,7 @@
 
             var dropbox_prefix = "https://dl.dropboxusercontent.com/";
             var source = dropbox_prefix + path;
+            source = "http://localhost/~mahrud/secret.txt.enc";
 
             jQuery.get(source, function(data) {
                 var iv  = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // FIXME fixed IV no no no no no!
